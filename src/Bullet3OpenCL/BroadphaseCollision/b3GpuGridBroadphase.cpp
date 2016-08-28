@@ -38,8 +38,8 @@ m_largeAabbsMappingGPU(ctx,q),
 m_gpuPairs(ctx,q),
 
 m_hashGpu(ctx,q),
-m_paramsGPU(ctx,q),
-m_cellStartGpu(ctx,q)
+m_cellStartGpu(ctx,q),
+m_paramsGPU(ctx,q)
 {
 
 	

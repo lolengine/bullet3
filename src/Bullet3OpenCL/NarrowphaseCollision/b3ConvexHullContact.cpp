@@ -108,8 +108,10 @@ m_queue(q),
 m_findSeparatingAxisKernel(0),
 m_findSeparatingAxisVertexFaceKernel(0),
 m_findSeparatingAxisEdgeEdgeKernel(0),
+m_unitSphereDirections(m_context,m_queue),
 m_totalContactsOut(m_context, m_queue),
 m_sepNormals(m_context, m_queue),
+m_dmins(m_context,m_queue),
 m_hasSeparatingNormals(m_context, m_queue),
 m_concaveSepNormals(m_context, m_queue),
 m_concaveHasSeparatingNormals(m_context,m_queue),
@@ -117,9 +119,7 @@ m_numConcavePairsOut(m_context, m_queue),
 m_gpuCompoundPairs(m_context, m_queue),
 m_gpuCompoundSepNormals(m_context, m_queue),
 m_gpuHasCompoundSepNormals(m_context, m_queue),
-m_numCompoundPairsOut(m_context, m_queue),
-m_dmins(m_context,m_queue),
-m_unitSphereDirections(m_context,m_queue)
+m_numCompoundPairsOut(m_context, m_queue)
 {
 	m_totalContactsOut.push_back(0);
 	
