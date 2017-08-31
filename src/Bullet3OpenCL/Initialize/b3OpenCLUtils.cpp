@@ -168,10 +168,11 @@ cl_platform_id b3OpenCLUtils_getPlatform(int platformIndex0, cl_int* pErrNum)
 #endif
 
 	cl_platform_id platform = 0;
+	unsigned int platformIndex = (unsigned int )platformIndex0;
 	cl_uint numPlatforms;
 	cl_int ciErrNum = clGetPlatformIDs(0, NULL, &numPlatforms);
 
-	if (platformIndex0>=0 && (cl_uint)platformIndex0<numPlatforms)
+	if (platformIndex<numPlatforms)
 	{
 		cl_platform_id* platforms = (cl_platform_id*) malloc (sizeof(cl_platform_id)*numPlatforms);
 		ciErrNum = clGetPlatformIDs(numPlatforms, platforms, NULL);
@@ -182,7 +183,7 @@ cl_platform_id b3OpenCLUtils_getPlatform(int platformIndex0, cl_int* pErrNum)
 			return platform;
 		}
 
-		platform = platforms[platformIndex0];
+		platform = platforms[platformIndex];
 
 		free (platforms);
 	}
@@ -309,6 +310,7 @@ cl_context b3OpenCLUtils_createContextFromType(cl_device_type deviceType, cl_int
 
 	cl_uint numPlatforms;
 	cl_context retContext = 0;
+	unsigned int i;
 
 	cl_int ciErrNum = clGetPlatformIDs(0, NULL, &numPlatforms);
 	if(ciErrNum != CL_SUCCESS)
@@ -330,7 +332,7 @@ cl_context b3OpenCLUtils_createContextFromType(cl_device_type deviceType, cl_int
 
 
 
-		for (int i = 0; (cl_uint)i < numPlatforms; ++i)
+		for ( i = 0; i < numPlatforms; ++i)
 		{
 			char pbuf[128];
 			ciErrNum = clGetPlatformInfo(	platforms[i],
@@ -344,7 +346,7 @@ cl_context b3OpenCLUtils_createContextFromType(cl_device_type deviceType, cl_int
 				return NULL;
 			}
 
-			if (i==preferredPlatformIndex)
+			if (preferredPlatformIndex>=0 && i==preferredPlatformIndex)
 			{
 				cl_platform_id tmpPlatform = platforms[0];
 				platforms[0] = platforms[i];
@@ -361,7 +363,7 @@ cl_context b3OpenCLUtils_createContextFromType(cl_device_type deviceType, cl_int
 			}
 		}
 
-		for (int i = 0; (cl_uint)i < numPlatforms; ++i)
+		for (i = 0; i < numPlatforms; ++i)
 		{
 			cl_platform_id platform = platforms[i];
 			assert(platform);
