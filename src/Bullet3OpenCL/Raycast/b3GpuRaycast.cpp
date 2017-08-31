@@ -196,7 +196,7 @@ void b3GpuRaycast::castRaysHost(const b3AlignedObjectArray<b3RayInfo>& rays,	b3A
 		{
 				
 			const b3Vector3& pos = bodies[b].m_pos;
-			const b3Quaternion& orn = bodies[b].m_quat;
+			//const b3Quaternion& orn = bodies[b].m_quat;
 			
 			switch (collidables[bodies[b].m_collidableIdx].m_shapeType)
 			{
@@ -311,7 +311,7 @@ void b3GpuRaycast::castRays(const b3AlignedObjectArray<b3RayInfo>& rays,	b3Align
 		
 		int numRayRigidPairs = -1;
 		m_data->m_gpuNumRayRigidPairs->copyToHostPointer(&numRayRigidPairs, 1);
-		if( numRayRigidPairs > (int)m_data->m_gpuRayRigidPairs->size() )
+		if( numRayRigidPairs > m_data->m_gpuRayRigidPairs->size() )
 		{
 			numRayRigidPairs = m_data->m_gpuRayRigidPairs->size();
 			m_data->m_gpuNumRayRigidPairs->copyFromHostPointer(&numRayRigidPairs, 1);

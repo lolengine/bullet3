@@ -168,10 +168,11 @@ cl_platform_id b3OpenCLUtils_getPlatform(int platformIndex0, cl_int* pErrNum)
 #endif
 
 	cl_platform_id platform = 0;
+	unsigned int platformIndex = (unsigned int )platformIndex0;
 	cl_uint numPlatforms;
 	cl_int ciErrNum = clGetPlatformIDs(0, NULL, &numPlatforms);
 
-	if (platformIndex0>=0 && (cl_uint)platformIndex0<numPlatforms)
+	if (platformIndex<numPlatforms)
 	{
 		cl_platform_id* platforms = (cl_platform_id*) malloc (sizeof(cl_platform_id)*numPlatforms);
 		ciErrNum = clGetPlatformIDs(numPlatforms, platforms, NULL);
@@ -182,7 +183,7 @@ cl_platform_id b3OpenCLUtils_getPlatform(int platformIndex0, cl_int* pErrNum)
 			return platform;
 		}
 
-		platform = platforms[platformIndex0];
+		platform = platforms[platformIndex];
 
 		free (platforms);
 	}
@@ -309,6 +310,7 @@ cl_context b3OpenCLUtils_createContextFromType(cl_device_type deviceType, cl_int
 
 	cl_uint numPlatforms;
 	cl_context retContext = 0;
+	unsigned int i;
 
 	cl_int ciErrNum = clGetPlatformIDs(0, NULL, &numPlatforms);
 	if(ciErrNum != CL_SUCCESS)
@@ -330,7 +332,7 @@ cl_context b3OpenCLUtils_createContextFromType(cl_device_type deviceType, cl_int
 
 
 
-		for (int i = 0; (cl_uint)i < numPlatforms; ++i)
+		for ( i = 0; i < numPlatforms; ++i)
 		{
 			char pbuf[128];
 			ciErrNum = clGetPlatformInfo(	platforms[i],
@@ -344,7 +346,7 @@ cl_context b3OpenCLUtils_createContextFromType(cl_device_type deviceType, cl_int
 				return NULL;
 			}
 
-			if (i==preferredPlatformIndex)
+			if (preferredPlatformIndex>=0 && i==preferredPlatformIndex)
 			{
 				cl_platform_id tmpPlatform = platforms[0];
 				platforms[0] = platforms[i];
@@ -361,7 +363,7 @@ cl_context b3OpenCLUtils_createContextFromType(cl_device_type deviceType, cl_int
 			}
 		}
 
-		for (int i = 0; (cl_uint)i < numPlatforms; ++i)
+		for (i = 0; i < numPlatforms; ++i)
 		{
 			cl_platform_id platform = platforms[i];
 			assert(platform);
@@ -558,7 +560,7 @@ void b3OpenCLUtils_printDeviceInfo(cl_device_id device)
 	b3Printf("\t\t\t\t\t3D_MAX_WIDTH\t %u\n", info.m_image3dMaxWidth);
 	b3Printf("\t\t\t\t\t3D_MAX_HEIGHT\t %u\n", info.m_image3dMaxHeight);
 	b3Printf("\t\t\t\t\t3D_MAX_DEPTH\t %u\n", info.m_image3dMaxDepth);
-	if (info.m_deviceExtensions != 0)
+	if (*info.m_deviceExtensions != 0)
 	{
 		b3Printf("\n  CL_DEVICE_EXTENSIONS:%s\n",info.m_deviceExtensions);
 	}
@@ -606,8 +608,9 @@ cl_program b3OpenCLUtils_compileCLProgramFromString(cl_context clContext, cl_dev
 	char driverVersion[256];
 	const char* strippedName;
 	int fileUpToDate = 0;
+#ifdef _WIN32
 	int binaryFileValid=0;
-	
+#endif	
 	if (!disableBinaryCaching && clFileNameForCaching)
 	{
 		clGetDeviceInfo(device, CL_DEVICE_NAME, 256, &deviceName, NULL);
@@ -860,7 +863,8 @@ cl_program b3OpenCLUtils_compileCLProgramFromString(cl_context clContext, cl_dev
 					int kernelSize = ftell( file );
 					rewind( file );
 					kernelSrc = (char*)malloc(kernelSize+1);
-					int readBytes = fread((void*)kernelSrc,1,kernelSize, file);
+					int readBytes;
+					readBytes = fread((void*)kernelSrc,1,kernelSize, file);
 					kernelSrc[kernelSize] = 0;
 					fclose(file);
 					kernelSource = kernelSrc;

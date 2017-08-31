@@ -45,7 +45,7 @@ public:
 
 	double GetTheta() const { return theta; }
 	double AddToTheta( double& delta ) { 
-		double orgTheta = theta;
+		//double orgTheta = theta;
 		theta += delta;
 #if 0
 		if (theta < minTheta)
@@ -56,6 +56,10 @@ public:
 		delta = actualDelta;
 #endif
 		return theta; }
+    
+    double UpdateTheta( double& delta ) {
+        theta = delta;
+        return theta; }
 
 	const VectorR3& GetS() const { return s; }
 	const VectorR3& GetW() const { return w; }

@@ -38,6 +38,7 @@ m_largeAabbsMappingGPU(ctx,q),
 m_gpuPairs(ctx,q),
 
 m_hashGpu(ctx,q),
+
 m_cellStartGpu(ctx,q),
 m_paramsGPU(ctx,q)
 {
@@ -110,7 +111,7 @@ b3GpuGridBroadphase::~b3GpuGridBroadphase()
 
 
 
-void b3GpuGridBroadphase::createProxy(const b3Vector3& aabbMin,  const b3Vector3& aabbMax, int userPtr ,short int collisionFilterGroup,short int collisionFilterMask)
+void b3GpuGridBroadphase::createProxy(const b3Vector3& aabbMin,  const b3Vector3& aabbMax, int userPtr , int collisionFilterGroup, int collisionFilterMask)
 {
 	b3SapAabb aabb;
 	aabb.m_minVec = aabbMin;
@@ -122,7 +123,7 @@ void b3GpuGridBroadphase::createProxy(const b3Vector3& aabbMin,  const b3Vector3
 	m_allAabbsCPU1.push_back(aabb);
 
 }
-void b3GpuGridBroadphase::createLargeProxy(const b3Vector3& aabbMin,  const b3Vector3& aabbMax, int userPtr ,short int collisionFilterGroup,short int collisionFilterMask)
+void b3GpuGridBroadphase::createLargeProxy(const b3Vector3& aabbMin,  const b3Vector3& aabbMax, int userPtr , int collisionFilterGroup, int collisionFilterMask)
 {
 	b3SapAabb aabb;
 	aabb.m_minVec = aabbMin;
@@ -279,7 +280,7 @@ void  b3GpuGridBroadphase::calculateOverlappingPairs(int maxPairs)
 
 				int sz = m_gpuPairs.size();
 				printf("m_gpuPairs.size()=%d\n",sz);
-				for (unsigned int i=0;i<m_gpuPairs.size();i++)
+				for (int i=0;i<m_gpuPairs.size();i++)
 				{
 					printf("pair %d = %d,%d\n",i,pairsCpu[i].x,pairsCpu[i].y);
 				}

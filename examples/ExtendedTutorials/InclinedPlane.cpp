@@ -36,6 +36,9 @@ static btScalar gBoxRestitution = 0; // set box restitution to 0
 static btScalar gSphereFriction = 1; // set sphere friction to 1
 
 static btScalar gSphereRollingFriction = 1; // set sphere rolling friction to 1
+static btScalar gSphereSpinningFriction = 0.3; // set sphere spinning friction to 0.3
+
+
 
 static btScalar gSphereRestitution = 0; // set sphere restitution to 0
 
@@ -59,29 +62,29 @@ struct InclinedPlaneExample : public CommonRigidBodyBase
 	void resetCamera()
 	{
 		float dist = 41;
-		float pitch = 52;
-		float yaw = 35;
+		float pitch = -35;
+		float yaw = 52;
 		float targetPos[3]={0,0.46,0};
-		m_guiHelper->resetCamera(dist,pitch,yaw,targetPos[0],targetPos[1],targetPos[2]);
+		m_guiHelper->resetCamera(dist,yaw,pitch,targetPos[0],targetPos[1],targetPos[2]);
 	}
 
 
 
 };
 
-void onBoxFrictionChanged(float friction);
+void onBoxFrictionChanged(float friction, void* userPtr);
 
-void onBoxRestitutionChanged(float restitution);
+void onBoxRestitutionChanged(float restitution, void* userPtr);
 
-void onSphereFrictionChanged(float friction);
+void onSphereFrictionChanged(float friction, void* userPtr);
 
-void onSphereRestitutionChanged(float restitution);
+void onSphereRestitutionChanged(float restitution, void* userPtr);
 
-void onRampInclinationChanged(float inclination);
+void onRampInclinationChanged(float inclination, void* userPtr);
 
-void onRampFrictionChanged(float friction);
+void onRampFrictionChanged(float friction, void* userPtr);
 
-void onRampRestitutionChanged(float restitution);
+void onRampRestitutionChanged(float restitution, void* userPtr);
 
 void InclinedPlaneExample::initPhysics()
 {
@@ -148,6 +151,16 @@ void InclinedPlaneExample::initPhysics()
     slider.m_callback = onSphereRestitutionChanged;
     m_guiHelper->getParameterInterface()->registerSliderFloatParameter(slider);
     }
+
+	{ // create slider to change the sphere rolling friction
+    SliderParams slider("Sphere Spinning",&gSphereSpinningFriction);
+    slider.m_minVal=0;
+    slider.m_maxVal=2;
+    slider.m_clampToNotches = false;
+    slider.m_callback = onSphereRestitutionChanged;
+    m_guiHelper->getParameterInterface()->registerSliderFloatParameter(slider);
+    }
+	
 
     { // create slider to change the sphere restitution
     SliderParams slider("Sphere Restitution",&gSphereRestitution);
@@ -240,6 +253,8 @@ void InclinedPlaneExample::initPhysics()
 		gSphere->setFriction(gSphereFriction);
 		gSphere->setRestitution(gSphereRestitution);
 		gSphere->setRollingFriction(gSphereRollingFriction);
+		gSphere->setSpinningFriction(gSphereSpinningFriction);
+
 	}
 
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
@@ -306,35 +321,35 @@ bool InclinedPlaneExample::keyboardCallback(int key, int state) {
 
 
 // GUI parameter modifiers
-void onBoxFrictionChanged(float friction){
+void onBoxFrictionChanged(float friction, void*){
 	if(gBox){
 		gBox->setFriction(friction);
 //		b3Printf("Friction of box changed to %f",friction );
 	}
 }
 
-void onBoxRestitutionChanged(float restitution){
+void onBoxRestitutionChanged(float restitution, void*){
 	if(gBox){
 		gBox->setRestitution(restitution);
 		//b3Printf("Restitution of box changed to %f",restitution);
 	}
 }
 
-void onSphereFrictionChanged(float friction){
+void onSphereFrictionChanged(float friction, void*){
 	if(gSphere){
 		gSphere->setFriction(friction);
 		//b3Printf("Friction of sphere changed to %f",friction );
 	}
 }
 
-void onSphereRestitutionChanged(float restitution){
+void onSphereRestitutionChanged(float restitution, void*){
 	if(gSphere){
 		gSphere->setRestitution(restitution);
 		//b3Printf("Restitution of sphere changed to %f",restitution);
 	}
 }
 
-void onRampInclinationChanged(float inclination){
+void onRampInclinationChanged(float inclination, void*){
 	if(ramp){
 		btTransform startTransform;
 		startTransform.setIdentity();
@@ -351,14 +366,14 @@ void onRampInclinationChanged(float inclination){
 	}
 }
 
-void onRampFrictionChanged(float friction){
+void onRampFrictionChanged(float friction, void*){
 	if(ramp){
 		ramp->setFriction(friction);
 		//b3Printf("Friction of ramp changed to %f \n",friction );
 	}
 }
 
-void onRampRestitutionChanged(float restitution){
+void onRampRestitutionChanged(float restitution, void*){
 	if(ramp){
 		ramp->setRestitution(restitution);
 		//b3Printf("Restitution of ramp changed to %f \n",restitution);

@@ -21,7 +21,7 @@
 #define MAX_NUM_EFFECT	100
 
 double T = 0;
-VectorR3 target1[MAX_NUM_EFFECT];
+VectorR3 targetaa[MAX_NUM_EFFECT];
 
 
 
@@ -85,7 +85,7 @@ void Reset(Tree &tree, Jacobian* m_ikJacobian)
 
 void UpdateTargets( double T2, Tree & treeY) {
 	double T = T2 / 5.;
-	target1[0].Set(0.6*b3Sin(0), 0.6*b3Cos(0), 0.5+0.4*b3Sin(3 * T));
+	targetaa[0].Set(0.6*b3Sin(0), 0.6*b3Cos(0), 0.5+0.4*b3Sin(3 * T));
 }
 
 
@@ -103,7 +103,7 @@ void DoUpdateStep(double Tstep, Tree & treeY, Jacobian *jacob, int ikMethod) {
 	else {
 		jacob->SetJendActive();
 	}
-	jacob->ComputeJacobian();						// Set up Jacobian and deltaS vectors
+	jacob->ComputeJacobian(targetaa);						// Set up Jacobian and deltaS vectors
 
 	// Calculate the change in theta values 
 	switch (ikMethod) {
@@ -129,7 +129,7 @@ void DoUpdateStep(double Tstep, Tree & treeY, Jacobian *jacob, int ikMethod) {
 
 	if ( SleepCounter==0 ) {
 		jacob->UpdateThetas();							// Apply the change in the theta values
-		jacob->UpdatedSClampValue();
+		jacob->UpdatedSClampValue(targetaa);
 		SleepCounter = SleepsPerStep;
 	}
 	else { 
@@ -155,10 +155,7 @@ class InverseKinematicsExample : public CommonExampleInterface
 	b3AlignedObjectArray<Node*> m_ikNodes;
 	Jacobian* m_ikJacobian;
 
-    float m_x;
-    float m_y;
-    float m_z;
-	b3AlignedObjectArray<int> m_movingInstances;
+ 	b3AlignedObjectArray<int> m_movingInstances;
 	int m_targetInstance;
 	enum
 	{
@@ -169,12 +166,9 @@ public:
     
     InverseKinematicsExample(CommonGraphicsApp* app, int option)
     :m_app(app),
-    m_x(0),
-    m_y(0),
-	m_z(0),
-	m_targetInstance(-1),
-	m_ikMethod(option)
-    {
+	m_ikMethod(option),
+	m_targetInstance(-1)
+	{
 		m_app->setUpAxis(2);
         
 		 {
@@ -204,7 +198,6 @@ public:
     }
     virtual ~InverseKinematicsExample()
     {
-        m_app->m_renderer->enableBlend(false);
     }
 
     
@@ -290,7 +283,7 @@ public:
 		getLocalTransform(m_ikTree.GetRoot(), act);
 		MyDrawTree(m_ikTree.GetRoot(), act);
 		
-		b3Vector3 pos = b3MakeVector3(target1[0].x, target1[0].y, target1[0].z);
+		b3Vector3 pos = b3MakeVector3(targetaa[0].x, targetaa[0].y, targetaa[0].z);
 		b3Quaternion orn(0, 0, 0, 1);
 
 		m_app->m_renderer->writeSingleInstanceTransformToCPU(pos, orn, m_targetInstance);
@@ -319,8 +312,8 @@ public:
 	virtual void resetCamera()
 	{
 		float dist = 1.3;
-		float pitch = 120;
-		float yaw = 13;
+		float pitch = -13;
+		float yaw = 120;
 		float targetPos[3]={-0.35,0.14,0.25};
 		if (m_app->m_renderer  && m_app->m_renderer->getActiveCamera())
 		{
@@ -336,7 +329,7 @@ public:
 
 void InverseKinematicsExample::BuildKukaIIWAShape()
 {
-	const VectorR3& unitx = VectorR3::UnitX;
+	//const VectorR3& unitx = VectorR3::UnitX;
 	const VectorR3& unity = VectorR3::UnitY;
 	const VectorR3& unitz = VectorR3::UnitZ;
 	const VectorR3 unit1(sqrt(14.0) / 8.0, 1.0 / 8.0, 7.0 / 8.0);

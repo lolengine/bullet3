@@ -113,7 +113,7 @@ inline vecx operator/(const vecx& a, const idScalar& s) {
 class mat3x : public matxx {
 public:
     mat3x(){}
-    mat3x(const mat3x&rhs): matxx() {
+    mat3x(const mat3x&rhs) {
         matxx::resize(rhs.rows(), rhs.cols());
         *this = rhs;
     }

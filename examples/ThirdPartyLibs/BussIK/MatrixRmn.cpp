@@ -251,6 +251,18 @@ MatrixRmn& MatrixRmn::AddToDiagonal( double d )				// Adds d to each diagonal en
 	return *this;
 }
 
+// Add a vector to the entries on the diagonal
+MatrixRmn& MatrixRmn::AddToDiagonal( const VectorRn& dVec )				// Adds dVec to the diagonal entries
+{
+    long diagLen = Min( NumRows, NumCols );
+    double* dPtr = x;
+    for (int i = 0; i < diagLen && i < dVec.GetLength(); ++i) {
+        *dPtr += dVec[i];
+        dPtr += NumRows+1;
+    }
+    return *this;
+}
+
 // Multiply two MatrixRmn's
 MatrixRmn& MatrixRmn::Multiply( const MatrixRmn& A, const MatrixRmn& B, MatrixRmn& dst )
 {
@@ -486,7 +498,7 @@ void MatrixRmn::ComputeSVD( MatrixRmn& U, VectorRn& w, MatrixRmn& V ) const
 			 && U.NumRows==U.NumCols && V.NumRows==V.NumCols
 			 && w.GetLength()==Min(NumRows,NumCols) );
 
-	double temp=0.0;
+//	double temp=0.0;
 	VectorRn& superDiag = VectorRn::GetWorkVector( w.GetLength()-1 );		// Some extra work space.  Will get passed around.
 
 	// Choose larger of U, V to hold intermediate results
@@ -511,6 +523,36 @@ void MatrixRmn::ComputeSVD( MatrixRmn& U, VectorRn& w, MatrixRmn& V ) const
 	CalcBidiagonal( *leftMatrix, *rightMatrix, w, superDiag );
 	ConvertBidiagToDiagonal( *leftMatrix, *rightMatrix, w, superDiag );
 
+}
+
+void MatrixRmn::ComputeInverse( MatrixRmn& R) const
+{
+    assert ( this->NumRows==this->NumCols );
+    MatrixRmn U(this->NumRows, this->NumCols);
+    VectorRn w(this->NumRows);
+    MatrixRmn V(this->NumRows, this->NumCols);
+    
+    this->ComputeSVD(U, w, V);
+    
+    assert(this->DebugCheckSVD(U, w , V));
+    
+    double PseudoInverseThresholdFactor = 0.01;
+    double pseudoInverseThreshold = PseudoInverseThresholdFactor*w.MaxAbs();
+    
+    MatrixRmn VD(this->NumRows, this->NumCols);
+    MatrixRmn D(this->NumRows, this->NumCols);
+    D.SetZero();
+    long diagLength = w.GetLength();
+    double* wPtr = w.GetPtr();
+    for ( long i = 0; i < diagLength; ++i ) {
+        double alpha = *(wPtr++);
+        if ( fabs(alpha)>pseudoInverseThreshold ) {
+            D.Set(i, i, 1.0/alpha);
+        }
+    }
+    
+    Multiply(V,D,VD);
+    MultiplyTranspose(VD,U,R);
 }
 
 // ************************************************ CalcBidiagonal **************************
@@ -941,6 +983,21 @@ bool MatrixRmn::DebugCheckSVD( const MatrixRmn& U, const VectorRn& w, const Matr
 	bool ret = ( fabs(error)<=1.0e-13*w.MaxAbs() );
 	assert ( ret );
 	return ret;
+}
+
+bool MatrixRmn::DebugCheckInverse( const MatrixRmn& MInv ) const
+{
+    assert ( this->NumRows==this->NumCols );
+    assert ( MInv.NumRows==MInv.NumCols );
+    MatrixRmn I(this->NumRows, this->NumCols);
+    I.SetIdentity();
+    MatrixRmn MMInv(this->NumRows, this->NumCols);
+    Multiply(*this, MInv, MMInv);
+    I -= MMInv;
+    double error = I.FrobeniusNorm();
+    bool ret = ( fabs(error)<=1.0e-13 );
+    assert ( ret );
+    return ret;
 }
 
 bool MatrixRmn::DebugCalcBidiagCheck( const MatrixRmn& U, const VectorRn& w, const VectorRn& superDiag, const MatrixRmn& V ) const
