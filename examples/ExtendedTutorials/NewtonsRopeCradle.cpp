@@ -90,10 +90,10 @@ struct NewtonsRopeCradleExample : public CommonRigidBodyBase {
 	void resetCamera()
 	{
 		float dist = 41;
-		float pitch = 52;
-		float yaw = 35;
+		float pitch = -35;
+		float yaw = 52;
 		float targetPos[3]={0,0.46,0};
-		m_guiHelper->resetCamera(dist,pitch,yaw,targetPos[0],targetPos[1],targetPos[2]);
+		m_guiHelper->resetCamera(dist,yaw,pitch,targetPos[0],targetPos[1],targetPos[2]);
 	}
 
 	std::vector<btSliderConstraint*> constraints;
@@ -105,9 +105,7 @@ struct NewtonsRopeCradleExample : public CommonRigidBodyBase {
 
 static NewtonsRopeCradleExample* nex = NULL;
 
-void onRopePendulaRestitutionChanged(float pendulaRestitution);
-
-void floorRSliderValue(float notUsed);
+void onRopePendulaRestitutionChanged(float pendulaRestitution, void*);
 
 void applyRForceWithForceScalar(float forceScalar);
 
@@ -118,8 +116,7 @@ void NewtonsRopeCradleExample::initPhysics()
 		SliderParams slider("Number of Pendula", &gPendulaQty);
 		slider.m_minVal = 1;
 		slider.m_maxVal = 50;
-		slider.m_callback = floorRSliderValue; // hack to get integer values
-		slider.m_clampToNotches = false;
+        slider.m_clampToIntegers = true;
 		m_guiHelper->getParameterInterface()->registerSliderFloatParameter(
 			slider);
 	}
@@ -128,8 +125,7 @@ void NewtonsRopeCradleExample::initPhysics()
 		SliderParams slider("Number of Displaced Pendula", &gDisplacedPendula);
 		slider.m_minVal = 0;
 		slider.m_maxVal = 49;
-		slider.m_callback = floorRSliderValue; // hack to get integer values
-		slider.m_clampToNotches = false;
+        slider.m_clampToIntegers = true;
 		m_guiHelper->getParameterInterface()->registerSliderFloatParameter(
 			slider);
 	}
@@ -148,8 +144,7 @@ void NewtonsRopeCradleExample::initPhysics()
 		SliderParams slider("Rope Resolution", &gRopeResolution);
 		slider.m_minVal = 1;
 		slider.m_maxVal = 20;
-		slider.m_clampToNotches = false;
-		slider.m_callback = floorRSliderValue;
+        slider.m_clampToIntegers = true;
 		m_guiHelper->getParameterInterface()->registerSliderFloatParameter(
 			slider);
 	}
@@ -357,16 +352,10 @@ void NewtonsRopeCradleExample::applyPendulumForce(btScalar pendulumForce){
 
 // GUI parameter modifiers
 
-void onRopePendulaRestitutionChanged(float pendulaRestitution) {
+void onRopePendulaRestitutionChanged(float pendulaRestitution, void*) {
 	if (nex){
 		nex->changePendulaRestitution(pendulaRestitution);
 	}
-}
-
-void floorRSliderValue(float notUsed) {
-	gPendulaQty = floor(gPendulaQty);
-	gDisplacedPendula = floor(gDisplacedPendula);
-	gRopeResolution = floor(gRopeResolution);
 }
 
 void applyRForceWithForceScalar(float forceScalar) {

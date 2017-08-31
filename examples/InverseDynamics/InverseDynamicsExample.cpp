@@ -87,10 +87,10 @@ public:
     virtual void resetCamera()
     {
         float dist = 1.5;
-        float pitch = -80;
-        float yaw = 10;
+        float pitch = -10;
+        float yaw = -80;
         float targetPos[3]={0,0,0};
-        m_guiHelper->resetCamera(dist,pitch,yaw,targetPos[0],targetPos[1],targetPos[2]);
+        m_guiHelper->resetCamera(dist,yaw,pitch,targetPos[0],targetPos[1],targetPos[2]);
     }
 };
 
@@ -156,7 +156,7 @@ void InverseDynamicsExample::initPhysics()
 
 
 			
-            BulletURDFImporter u2b(m_guiHelper,0);
+            BulletURDFImporter u2b(m_guiHelper,0,1);
 			bool loadOk = u2b.loadURDF("kuka_iiwa/model.urdf");// lwr / kuka.urdf");
             if (loadOk)
             {
@@ -225,13 +225,13 @@ void InverseDynamicsExample::initPhysics()
 			{
 				qd[dof] = 0;
 				char tmp[25];
-				sprintf(tmp,"q_desired[%u]",dof);
+				sprintf(tmp,"q_desired[%lu]",dof);
 				qd_name[dof] = tmp;
 				SliderParams slider(qd_name[dof].c_str(),&qd[dof]);
 				slider.m_minVal=-3.14;
 				slider.m_maxVal=3.14;
 				
-				sprintf(tmp,"q[%u]",dof); 
+				sprintf(tmp,"q[%lu]",dof); 
 				q_name[dof] = tmp;   
 				m_guiHelper->getParameterInterface()->registerSliderFloatParameter(slider);
 				btVector4 color = sJointCurveColors[dof&7];
@@ -343,6 +343,7 @@ void InverseDynamicsExample::stepSimulation(float deltaTime)
 		btAlignedObjectArray<btQuaternion> scratch_q;
 		btAlignedObjectArray<btVector3> scratch_m;
 		m_multiBody->forwardKinematics(scratch_q, scratch_m);
+#if 0
 		for (int i = 0; i < m_multiBody->getNumLinks(); i++)
 		{
 			//btVector3 pos = m_multiBody->getLink(i).m_cachedWorldTransform.getOrigin();
@@ -355,6 +356,7 @@ void InverseDynamicsExample::stepSimulation(float deltaTime)
 
 
 		}
+#endif
     }
 }
 

@@ -558,7 +558,7 @@ void b3OpenCLUtils_printDeviceInfo(cl_device_id device)
 	b3Printf("\t\t\t\t\t3D_MAX_WIDTH\t %u\n", info.m_image3dMaxWidth);
 	b3Printf("\t\t\t\t\t3D_MAX_HEIGHT\t %u\n", info.m_image3dMaxHeight);
 	b3Printf("\t\t\t\t\t3D_MAX_DEPTH\t %u\n", info.m_image3dMaxDepth);
-	if (info.m_deviceExtensions != 0)
+	if (*info.m_deviceExtensions != 0)
 	{
 		b3Printf("\n  CL_DEVICE_EXTENSIONS:%s\n",info.m_deviceExtensions);
 	}
@@ -606,8 +606,9 @@ cl_program b3OpenCLUtils_compileCLProgramFromString(cl_context clContext, cl_dev
 	char driverVersion[256];
 	const char* strippedName;
 	int fileUpToDate = 0;
+#ifdef _WIN32
 	int binaryFileValid=0;
-	
+#endif	
 	if (!disableBinaryCaching && clFileNameForCaching)
 	{
 		clGetDeviceInfo(device, CL_DEVICE_NAME, 256, &deviceName, NULL);
@@ -860,7 +861,8 @@ cl_program b3OpenCLUtils_compileCLProgramFromString(cl_context clContext, cl_dev
 					int kernelSize = ftell( file );
 					rewind( file );
 					kernelSrc = (char*)malloc(kernelSize+1);
-					int readBytes = fread((void*)kernelSrc,1,kernelSize, file);
+					int readBytes;
+					readBytes = fread((void*)kernelSrc,1,kernelSize, file);
 					kernelSrc[kernelSize] = 0;
 					fclose(file);
 					kernelSource = kernelSrc;

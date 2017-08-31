@@ -1,7 +1,16 @@
+
 //#include "SharedMemoryCommands.h"
 #ifdef PHYSICS_SHARED_MEMORY
 #include "SharedMemory/PhysicsClientC_API.h"
 #endif //PHYSICS_SHARED_MEMORY
+
+#ifdef PHYSICS_UDP
+#include "SharedMemory/PhysicsClientUDP_C_API.h"
+#endif//PHYSICS_UDP
+
+#ifdef PHYSICS_TCP
+#include "SharedMemory/PhysicsClientTCP_C_API.h"
+#endif//PHYSICS_TCP
 
 #ifdef PHYSICS_LOOP_BACK
 #include "SharedMemory/PhysicsLoopBackC_API.h"
@@ -67,6 +76,20 @@ void testSharedMemory(b3PhysicsClientHandle sm)
 			numBodies = b3GetStatusBodyIndices(statusHandle, bodyIndicesOut, 10);
             ASSERT_EQ(numBodies,1);
             bodyUniqueId = bodyIndicesOut[0];
+			{
+				{
+					b3SharedMemoryStatusHandle statusHandle;
+					int statusType;
+					b3SharedMemoryCommandHandle command = b3InitRequestVisualShapeInformation(sm, bodyUniqueId);
+					statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
+					statusType = b3GetStatusType(statusHandle);
+					if (statusType == CMD_VISUAL_SHAPE_INFO_COMPLETED)
+					{
+						struct b3VisualShapeInformation vi;
+						b3GetVisualShapeInformation(sm, &vi);
+					}
+				}
+			}
             
             numJoints = b3GetNumJoints(sm,bodyUniqueId);
             ASSERT_EQ(numJoints,7);
@@ -119,6 +142,8 @@ void testSharedMemory(b3PhysicsClientHandle sm)
         
 		if (bodyIndex>=0)
 		{
+			
+
 			numJoints = b3GetNumJoints(sm,bodyIndex);
 			for (i=0;i<numJoints;i++)
 			{
@@ -208,7 +233,7 @@ void testSharedMemory(b3PhysicsClientHandle sm)
 #endif
         }
         ///perform some simulation steps for testing
-        for ( i=0;i<100;i++)
+        for ( i=0;i<1000;i++)
         {
 			b3SharedMemoryStatusHandle statusHandle;
 			int statusType;
@@ -223,6 +248,18 @@ void testSharedMemory(b3PhysicsClientHandle sm)
                 break;
             }
         }
+        
+		{
+			b3SharedMemoryCommandHandle command;
+			b3SharedMemoryStatusHandle statusHandle;
+            int width = 1024;
+			int height = 1024;
+
+			command = b3InitRequestCameraImage(sm);
+			
+			b3RequestCameraImageSetPixelResolution(command, width, height);
+			statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
+		}
         
         if (b3CanSubmitCommand(sm))
         {
@@ -298,16 +335,26 @@ int main(int argc, char* argv[])
 #ifdef PHYSICS_IN_PROCESS_EXAMPLE_BROWSER
 
 #ifdef __APPLE__
-    b3PhysicsClientHandle sm = b3CreateInProcessPhysicsServerAndConnectMainThread(argc,argv);
+    b3PhysicsClientHandle sm = b3CreateInProcessPhysicsServerAndConnectMainThread(argc,argv,1);
 #else
-    b3PhysicsClientHandle sm = b3CreateInProcessPhysicsServerAndConnect(argc,argv);
+    b3PhysicsClientHandle sm = b3CreateInProcessPhysicsServerAndConnect(argc,argv,1);
 #endif //__APPLE__
 #endif
+
 #ifdef PHYSICS_SHARED_MEMORY
         b3PhysicsClientHandle sm = b3ConnectSharedMemory(SHARED_MEMORY_KEY);
 #endif //PHYSICS_SHARED_MEMORY
 
+#ifdef PHYSICS_UDP
+        b3PhysicsClientHandle sm = b3ConnectPhysicsUDP("localhost",1234);
+#endif //PHYSICS_UDP
+
+#ifdef PHYSICS_TCP
+        b3PhysicsClientHandle sm = b3ConnectPhysicsTCP("localhost",6667);
+#endif //PHYSICS_UDP
+
 	testSharedMemory(sm);
 }
 #endif
+
 

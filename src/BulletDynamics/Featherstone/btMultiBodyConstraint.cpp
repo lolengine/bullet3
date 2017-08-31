@@ -299,7 +299,7 @@ btScalar btMultiBodyConstraint::fillMultiBodyConstraint(	btMultiBodySolverConstr
     
     
     //compute rhs and remaining solverConstraint fields
-    btScalar penetration = isFriction? 0 : posError+infoGlobal.m_linearSlop;
+    btScalar penetration = isFriction? 0 : posError;
     
     btScalar rel_vel = 0.f;
     int ndofA  = 0;
@@ -378,7 +378,9 @@ btScalar btMultiBodyConstraint::fillMultiBodyConstraint(	btMultiBodySolverConstr
         
         
         btScalar erp = infoGlobal.m_erp2;
-        if (!infoGlobal.m_splitImpulse || (penetration > infoGlobal.m_splitImpulsePenetrationThreshold))
+		
+		//split impulse is not implemented yet for btMultiBody*
+		//if (!infoGlobal.m_splitImpulse || (penetration > infoGlobal.m_splitImpulsePenetrationThreshold))
         {
             erp = infoGlobal.m_erp;
         }
@@ -388,19 +390,23 @@ btScalar btMultiBodyConstraint::fillMultiBodyConstraint(	btMultiBodySolverConstr
         btScalar  penetrationImpulse = positionalError*solverConstraint.m_jacDiagABInv;
         btScalar velocityImpulse = velocityError *solverConstraint.m_jacDiagABInv;
         
-        if (!infoGlobal.m_splitImpulse || (penetration > infoGlobal.m_splitImpulsePenetrationThreshold))
+		//split impulse is not implemented yet for btMultiBody*
+
+      //  if (!infoGlobal.m_splitImpulse || (penetration > infoGlobal.m_splitImpulsePenetrationThreshold))
         {
             //combine position and velocity into rhs
             solverConstraint.m_rhs = penetrationImpulse+velocityImpulse;
             solverConstraint.m_rhsPenetration = 0.f;
             
-        } else
+        } 
+		/*else
         {
             //split position and velocity into rhs and m_rhsPenetration
             solverConstraint.m_rhs = velocityImpulse;
             solverConstraint.m_rhsPenetration = penetrationImpulse;
         }
-        
+        */
+
         solverConstraint.m_cfm = 0.f;
         solverConstraint.m_lowerLimit = lowerLimit;
         solverConstraint.m_upperLimit = upperLimit;

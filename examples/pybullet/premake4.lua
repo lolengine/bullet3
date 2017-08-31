@@ -3,14 +3,13 @@
 project ("pybullet")
 		language "C++"
 		kind "SharedLib"
-		targetsuffix ("")
-		targetprefix ("")
+		
 		includedirs {"../../src", "../../examples",
 		"../../examples/ThirdPartyLibs"}
 		defines {"PHYSICS_IN_PROCESS_EXAMPLE_BROWSER"}
 	hasCL = findOpenCL("clew")
 
-	links{"BulletExampleBrowserLib","gwen", "BulletFileLoader","BulletWorldImporter","OpenGL_Window","BulletSoftBody", "BulletInverseDynamicsUtils", "BulletInverseDynamics", "BulletDynamics","BulletCollision","LinearMath","Bullet3Common"}
+	links{"BulletExampleBrowserLib","gwen", "BulletFileLoader","BulletWorldImporter","OpenGL_Window","BulletSoftBody", "BulletInverseDynamicsUtils", "BulletInverseDynamics", "BulletDynamics","BulletCollision","LinearMath","BussIK", "Bullet3Common"}
 	initOpenGL()
 	initGlew()
 
@@ -21,6 +20,7 @@ project ("pybullet")
                 }
 
 	if os.is("MacOSX") then
+--		targetextension {"so"}
 		links{"Cocoa.framework","Python"}
 	end
 
@@ -34,10 +34,64 @@ project ("pybullet")
 			}
 		end
 
+if not _OPTIONS["no-enet"] then
+
+		includedirs {"../../examples/ThirdPartyLibs/enet/include"}
+	
+		if os.is("Windows") then 
+--			targetextension {"dylib"}
+			defines { "WIN32" }
+			links {"Ws2_32","Winmm"}
+		end
+		if os.is("Linux") then
+		end
+		if os.is("MacOSX") then
+		end		
+		
+		links {"enet"}		
+
+		files {
+			"../../examples/SharedMemory/PhysicsClientUDP.cpp",
+			"../../examples/SharedMemory/PhysicsClientUDP.h",
+			"../../examples/SharedMemory/PhysicsClientUDP_C_API.cpp",
+			"../../examples/SharedMemory/PhysicsClientUDP_C_API.h",
+		}	
+		defines {"BT_ENABLE_ENET"}
+	end
+
+	if not _OPTIONS["no-clsocket"] then
+
+                includedirs {"../../examples/ThirdPartyLibs/clsocket/src"}
+
+		 if os.is("Windows") then
+                	defines { "WIN32" }
+                	links {"Ws2_32","Winmm"}
+       		 end
+        	if os.is("Linux") then
+                	defines {"_LINUX"}
+        	end
+        	if os.is("MacOSX") then
+                	defines {"_DARWIN"}
+        	end
+
+                links {"clsocket"}
+
+                files {
+                        "../../examples/SharedMemory/PhysicsClientTCP.cpp",
+                        "../../examples/SharedMemory/PhysicsClientTCP.h",
+                        "../../examples/SharedMemory/PhysicsClientTCP_C_API.cpp",
+                        "../../examples/SharedMemory/PhysicsClientTCP_C_API.h",
+                }
+                defines {"BT_ENABLE_CLSOCKET"}
+        end
+
+
 		files {
 			"pybullet.c",
+			"../../examples/SharedMemory/IKTrajectoryHelper.cpp",
+			"../../examples/SharedMemory/IKTrajectoryHelper.h",
 			"../../examples/ExampleBrowser/InProcessExampleBrowser.cpp",
-    	"../../examples/SharedMemory/TinyRendererVisualShapeConverter.cpp",
+			"../../examples/SharedMemory/TinyRendererVisualShapeConverter.cpp",
 			"../../examples/SharedMemory/TinyRendererVisualShapeConverter.h",
 			"../../examples/OpenGLWindow/SimpleCamera.cpp",
 			"../../examples/OpenGLWindow/SimpleCamera.h",
@@ -52,6 +106,7 @@ project ("pybullet")
 			"../../examples/SharedMemory/PhysicsServer.cpp",
 			"../../examples/SharedMemory/PhysicsServer.h",
 			"../../examples/SharedMemory/PhysicsServerExample.cpp",
+			"../../examples/SharedMemory/PhysicsServerExampleBullet2.cpp",
 			"../../examples/SharedMemory/SharedMemoryInProcessPhysicsC_API.cpp",
 			"../../examples/SharedMemory/PhysicsServerSharedMemory.cpp",
 			"../../examples/SharedMemory/PhysicsServerSharedMemory.h",
@@ -63,14 +118,20 @@ project ("pybullet")
 			"../../examples/SharedMemory/PhysicsServerCommandProcessor.h",
 			"../../examples/SharedMemory/PhysicsClientSharedMemory.cpp",
 			"../../examples/SharedMemory/PhysicsClientSharedMemory.h",
+			"../../examples/SharedMemory/PhysicsClientSharedMemory_C_API.cpp",
+			"../../examples/SharedMemory/PhysicsClientSharedMemory_C_API.h",
 			"../../examples/SharedMemory/PhysicsClientC_API.cpp",
 			"../../examples/SharedMemory/PhysicsClientC_API.h",
 			"../../examples/SharedMemory/Win32SharedMemory.cpp",
 			"../../examples/SharedMemory/Win32SharedMemory.h",
 			"../../examples/SharedMemory/PosixSharedMemory.cpp",
 			"../../examples/SharedMemory/PosixSharedMemory.h",
+			"../../examples/SharedMemory/SharedMemoryCommands.h",
+			"../../examples/SharedMemory/SharedMemoryPublic.h",
 			"../../examples/Utils/b3ResourcePath.cpp",
 			"../../examples/Utils/b3ResourcePath.h",
+			"../../examples/Utils/RobotLoggingUtil.cpp",
+			"../../examples/Utils/RobotLoggingUtil.h",
 			"../../examples/ThirdPartyLibs/tinyxml/tinystr.cpp",
 			"../../examples/ThirdPartyLibs/tinyxml/tinyxml.cpp",
 			"../../examples/ThirdPartyLibs/tinyxml/tinyxmlerror.cpp",
@@ -81,6 +142,7 @@ project ("pybullet")
 			"../../examples/Importers/ImportColladaDemo/LoadMeshFromCollada.cpp",
 			"../../examples/Importers/ImportObjDemo/LoadMeshFromObj.cpp",
 			"../../examples/Importers/ImportObjDemo/Wavefront2GLInstanceGraphicsShape.cpp",
+			"../../examples/Importers/ImportMJCFDemo/BulletMJCFImporter.cpp",
 			"../../examples/Importers/ImportURDFDemo/BulletUrdfImporter.cpp",
 			"../../examples/Importers/ImportURDFDemo/MyMultiBodyCreator.cpp",
 			"../../examples/Importers/ImportURDFDemo/URDF2Bullet.cpp",

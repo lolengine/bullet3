@@ -61,8 +61,8 @@ class CollisionTutorialBullet2 : public CommonExampleInterface
 	plCollisionSdkHandle m_collisionSdkHandle;
 	plCollisionWorldHandle m_collisionWorldHandle;
 	
-	int m_stage;
-	int m_counter;
+//	int m_stage;
+//	int m_counter;
 	
 public:
     
@@ -70,16 +70,15 @@ public:
     :m_app(guiHelper->getAppInterface()),
 	m_guiHelper(guiHelper),
 	m_tutorialIndex(tutorialIndex),
+	m_timeSeriesCanvas0(0),
 	m_collisionSdkHandle(0),
-	m_collisionWorldHandle(0),
-	m_stage(0),
-	m_counter(0),
-	m_timeSeriesCanvas0(0)
+	m_collisionWorldHandle(0)
+//	m_stage(0),
+//	m_counter(0)
     {
 		
 		gTotalPoints = 0;
 		m_app->setUpAxis(1);
-		m_app->m_renderer->enableBlend(true);
 		
 		switch (m_tutorialIndex)
 		{
@@ -250,7 +249,6 @@ public:
 
 		m_timeSeriesCanvas0 = 0;
 
-		m_app->m_renderer->enableBlend(false);
     }
     
     
@@ -371,8 +369,8 @@ public:
 	virtual void resetCamera()
 	{
 		float dist = 10.5;
-		float pitch = 136;
-		float yaw = 32;
+		float pitch = -32;
+		float yaw = 136;
 		float targetPos[3]={0,0,0};
 		if (m_app->m_renderer  && m_app->m_renderer->getActiveCamera())
 		{
