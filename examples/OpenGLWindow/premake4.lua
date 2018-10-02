@@ -12,7 +12,11 @@
 		 	"../ThirdPartyLibs",
 		 	"../../src",
 		}
-		
+
+        if os.is("Linux") then
+            buildoptions{"-fPIC"}
+        end
+        		
 		--links {
 		--}
 		
@@ -21,9 +25,12 @@
 			"*.h",
 			"OpenGLWindow/*.c",
 			"OpenGLWindow/*.h",
-			"OpenGLWindow/GL/*.h"
+			"OpenGLWindow/GL/*.h",
+			"../ThirdPartyLibs/stb_image/stb_image_write.cpp",
 		}
 
+		
+		
 		if not os.is("Windows") then 
 			excludes {  
 				"Win32OpenGLWindow.cpp",

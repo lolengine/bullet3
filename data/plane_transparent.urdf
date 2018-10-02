@@ -1,4 +1,4 @@
-<?xml version="0.0" ?>
+<?xml version="1.0" ?>
 <robot name="plane">
   <link name="planeLink">
   <contact>
@@ -15,7 +15,7 @@
 				<mesh filename="plane_transparent.obj" scale="1 1 1"/>
       </geometry>
        <material name="white">
-        <color rgba="1 1 1 0.4"/>
+        <color rgba="1 1 1 .7"/>
       </material>
     </visual>
     <collision>

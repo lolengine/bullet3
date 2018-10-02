@@ -3,6 +3,17 @@
 project ("pybullet")
 		language "C++"
 		kind "SharedLib"
+
+		if _OPTIONS["enable_grpc"] then
+				initGRPC()
+				
+				 files {
+                  "../../examples/SharedMemory/PhysicsClientGRPC.cpp",
+                  "../../examples/SharedMemory/PhysicsClientGRPC.h",
+                  "../../examples/SharedMemory/PhysicsClientGRPC_C_API.cpp",
+                  "../../examples/SharedMemory/PhysicsClientGRPC_C_API.h",
+                }
+		end
 		
 		includedirs {"../../src", "../../examples",
 		"../../examples/ThirdPartyLibs"}
@@ -91,8 +102,10 @@ if not _OPTIONS["no-enet"] then
 			"../../examples/SharedMemory/IKTrajectoryHelper.cpp",
 			"../../examples/SharedMemory/IKTrajectoryHelper.h",
 			"../../examples/ExampleBrowser/InProcessExampleBrowser.cpp",
-			"../../examples/SharedMemory/TinyRendererVisualShapeConverter.cpp",
-			"../../examples/SharedMemory/TinyRendererVisualShapeConverter.h",
+			"../../examples/SharedMemory/plugins/tinyRendererPlugin/tinyRendererPlugin.cpp",
+			"../../examples/SharedMemory/plugins/tinyRendererPlugin/tinyRendererPlugin.h",
+			"../../examples/SharedMemory/plugins/tinyRendererPlugin/TinyRendererVisualShapeConverter.cpp",
+			"../../examples/SharedMemory/plugins/tinyRendererPlugin/TinyRendererVisualShapeConverter.h",
 			"../../examples/OpenGLWindow/SimpleCamera.cpp",
 			"../../examples/OpenGLWindow/SimpleCamera.h",
 			"../../examples/TinyRenderer/geometry.cpp",
@@ -101,6 +114,8 @@ if not _OPTIONS["no-enet"] then
 			"../../examples/TinyRenderer/our_gl.cpp",
 			"../../examples/TinyRenderer/TinyRenderer.cpp",
 			"../../examples/SharedMemory/InProcessMemory.cpp",
+			"../../examples/SharedMemory/b3RobotSimulatorClientAPI_NoDirect.cpp",
+			"../../examples/SharedMemory/b3RobotSimulatorClientAPI_NoDirect.h",
 			"../../examples/SharedMemory/PhysicsClient.cpp",
 			"../../examples/SharedMemory/PhysicsClient.h",
 			"../../examples/SharedMemory/PhysicsServer.cpp",
@@ -116,6 +131,8 @@ if not _OPTIONS["no-enet"] then
 			"../../examples/SharedMemory/PhysicsDirectC_API.h",
 			"../../examples/SharedMemory/PhysicsServerCommandProcessor.cpp",
 			"../../examples/SharedMemory/PhysicsServerCommandProcessor.h",
+			"../../examples/SharedMemory/b3PluginManager.cpp",
+			"../../examples/SharedMemory/b3PluginManager.h",
 			"../../examples/SharedMemory/PhysicsClientSharedMemory.cpp",
 			"../../examples/SharedMemory/PhysicsClientSharedMemory.h",
 			"../../examples/SharedMemory/PhysicsClientSharedMemory_C_API.cpp",
@@ -132,13 +149,11 @@ if not _OPTIONS["no-enet"] then
 			"../../examples/Utils/b3ResourcePath.h",
 			"../../examples/Utils/RobotLoggingUtil.cpp",
 			"../../examples/Utils/RobotLoggingUtil.h",
-			"../../examples/ThirdPartyLibs/tinyxml/tinystr.cpp",
-			"../../examples/ThirdPartyLibs/tinyxml/tinyxml.cpp",
-			"../../examples/ThirdPartyLibs/tinyxml/tinyxmlerror.cpp",
-			"../../examples/ThirdPartyLibs/tinyxml/tinyxmlparser.cpp",
+			"../../examples/ThirdPartyLibs/tinyxml2/tinyxml2.cpp",
 			"../../examples/ThirdPartyLibs/Wavefront/tiny_obj_loader.cpp",
 			"../../examples/ThirdPartyLibs/Wavefront/tiny_obj_loader.h",
 			"../../examples/ThirdPartyLibs/stb_image/stb_image.cpp",
+			"../../examples/ThirdPartyLibs/stb_image/stb_image_write.cpp",
 			"../../examples/Importers/ImportColladaDemo/LoadMeshFromCollada.cpp",
 			"../../examples/Importers/ImportObjDemo/LoadMeshFromObj.cpp",
 			"../../examples/Importers/ImportObjDemo/Wavefront2GLInstanceGraphicsShape.cpp",
@@ -152,7 +167,15 @@ if not _OPTIONS["no-enet"] then
 			"../../examples/MultiThreading/b3PosixThreadSupport.cpp",
 			"../../examples/MultiThreading/b3Win32ThreadSupport.cpp",
 			"../../examples/MultiThreading/b3ThreadSupportInterface.cpp",
+			"../../examples/SharedMemory/plugins/collisionFilterPlugin/collisionFilterPlugin.cpp",
+			"../../examples/SharedMemory/plugins/pdControlPlugin/pdControlPlugin.cpp",
+			"../../examples/SharedMemory/plugins/pdControlPlugin/pdControlPlugin.h",
 			}
+			
+if (_OPTIONS["enable_static_vr_plugin"]) then
+		files {"../../examples/SharedMemory/plugins/vrSyncPlugin/vrSyncPlugin.cpp"}
+end
+
 	
 	includedirs {
 		_OPTIONS["python_include_dir"],

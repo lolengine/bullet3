@@ -23,9 +23,18 @@
 		act = _ACTION
 	end
 
+	projectRootDir = os.getcwd() .. "/../"
+	print("Project root directory: " .. projectRootDir);
+	
 	newoption {
 		trigger     = "ios",
 		description = "Enable iOS target (requires xcode4)"
+	}
+
+	newoption
+	{
+		trigger = "enable_system_glx",
+		description = "Try to link against system glx instead of using glad_glx (default)"
 	}
 
 	newoption
@@ -47,6 +56,13 @@
 
 	newoption
 	{
+		trigger = "enable_static_vr_plugin",
+		description = "Statically link vr plugin (in examples/SharedMemory/plugins/vrSyncPlugin)"
+	}
+
+
+	newoption
+	{
 		trigger = "noopengl3",
 		description = "Don't compile any OpenGL3+ code"
 	}
@@ -56,6 +72,158 @@
 		trigger = "midi",
 		description = "Use Midi controller to control parameters"
 	}
+	
+	
+	newoption
+	{
+		trigger = "enable_egl",
+		value       = false,
+		description = "Build an experimental eglPlugin"
+	}
+
+	
+	newoption
+	{
+		trigger = "enable_grpc",
+		description = "Build GRPC server/client features for PyBullet/BulletRobotics"
+	
+	}
+
+	if os.is("Linux") then
+                default_grpc_include_dir = "usr/local/include/GRPC"
+                default_grpc_lib_dir = "/usr/local/lib"
+                default_protobuf_include_dir = "/usr/local/include/protobuf"
+                default_protobuf_lib_dir = "/usr/local/lib"
+	end
+
+	if os.is("macosx") then
+                default_grpc_include_dir = "/usr/local/Cellar/grpc/1.14.1/include"
+                default_grpc_lib_dir = "/usr/local/Cellar/grpc/1.14.1/lib"
+								default_protobuf_include_dir = "/usr/local/Cellar/protobuf/3.6.0/include"
+                default_protobuf_lib_dir = "/usr/local/Cellar/protobuf/3.6.0/lib"
+	end
+
+	if os.is("Windows") then
+                default_grpc_include_dir = projectRootDir .. "examples/ThirdPartyLibs/grpc/include"
+                default_grpc_lib_dir = projectRootDir .. "examples/ThirdPartyLibs/grpc/lib"
+                default_protobuf_include_dir =projectRootDir .. "examples/ThirdPartyLibs/grpc/include"
+                default_protobuf_lib_dir = projectRootDir .. "examples/ThirdPartyLibs/grpc/lib"
+	end
+	
+	newoption
+	{
+                        trigger     = "grpc_include_dir",
+                        value       = default_grpc_include_dir,
+                        description = "(optional) GRPC include directory"
+	}
+
+	newoption
+	{
+                        trigger     = "grpc_lib_dir",
+                        value       = default_grpc_lib_dir,
+                        description = "(optional) GRPC library directory "
+	}
+
+
+	newoption
+        {
+                        trigger     = "protobuf_include_dir",
+                        value       = default_protobuf_include_dir,
+                        description = "(optional) protobuf include directory"
+        }
+
+        newoption
+        {
+                        trigger     = "protobuf_lib_dir",
+                        value       = default_protobuf_lib_dir,
+                        description = "(optional) protobuf library directory "
+        }
+
+
+	if not _OPTIONS["grpc_lib_dir"] then
+		_OPTIONS["grpc_lib_dir"] = default_grpc_lib_dir
+	end
+	if not _OPTIONS["grpc_include_dir"] then
+		_OPTIONS["grpc_include_dir"] = default_grpc_include_dir
+	end
+	if not _OPTIONS["protobuf_include_dir"] then
+		_OPTIONS["protobuf_include_dir"] = default_protobuf_include_dir
+	end	
+	
+	if not _OPTIONS["protobuf_lib_dir"] then
+		_OPTIONS["protobuf_lib_dir"] = default_protobuf_lib_dir
+	end	
+	
+
+	if _OPTIONS["enable_egl"] then
+		function initEGL()
+			defines {"BT_USE_EGL"}
+		end
+	end	
+	
+	
+	if _OPTIONS["enable_grpc"] then
+	function initGRPC()
+	
+
+			print "BT_ENABLE_GRPC"
+
+			print("grpc_include_dir=")
+			print(_OPTIONS["grpc_include_dir"])
+			print("grpc_lib_dir=")
+			print(_OPTIONS["grpc_lib_dir"])
+			print("protobuf_include_dir=")
+			print(_OPTIONS["protobuf_include_dir"])
+			print("protobuf_lib_dir=")
+			print(_OPTIONS["protobuf_lib_dir"])
+			
+			defines {"BT_ENABLE_GRPC"}
+			
+				if os.is("macosx") then
+			 buildoptions { "-std=c++11" }
+			 links{ "dl"}
+			end
+			
+			if os.is("Linux") then
+			 		buildoptions { "-std=c++11" }
+					links{ "dl"}
+			end
+			
+			if os.is("Windows") then
+					defines {"_WIN32_WINNT=0x0600"}
+					links{ "zlibstatic","ssl","crypto"}
+			end
+
+      includedirs {
+             projectRootDir .. "examples", _OPTIONS["grpc_include_dir"], _OPTIONS["protobuf_include_dir"],
+      }
+
+			if os.is("Windows") then
+				configuration {"x64", "debug"}			
+						libdirs {_OPTIONS["grpc_lib_dir"] .. "/win64_debug" , _OPTIONS["protobuf_lib_dir"] .. "win64_debug",}
+				configuration {"x86", "debug"}
+						libdirs {_OPTIONS["grpc_lib_dir"] .. "/win32_debug" , _OPTIONS["protobuf_lib_dir"] .. "win32_debug",}
+				configuration {"x64", "release"}
+						libdirs {_OPTIONS["grpc_lib_dir"] .. "/win64_release", _OPTIONS["protobuf_lib_dir"] .. "win64_release",}
+				configuration {"x86", "release"}
+						libdirs {_OPTIONS["grpc_lib_dir"] .. "/win32_release" , _OPTIONS["protobuf_lib_dir"] .. "win32_release",}
+				configuration{}
+				
+				else
+				libdirs {_OPTIONS["grpc_lib_dir"], _OPTIONS["protobuf_lib_dir"],}
+			end
+      
+      links { "grpc","grpc++", "grpc++_reflection", "gpr", "protobuf"}
+      files { 
+      projectRootDir .. "examples/SharedMemory/grpc/ConvertGRPCBullet.cpp",
+			projectRootDir .. "examples/SharedMemory/grpc/ConvertGRPCBullet.h",
+			projectRootDir .. "examples/SharedMemory/grpc/proto/pybullet.grpc.pb.cpp",
+			projectRootDir .. "examples/SharedMemory/grpc/proto/pybullet.grpc.pb.h",
+			projectRootDir .. "examples/SharedMemory/grpc/proto/pybullet.pb.cpp",
+			projectRootDir .. "examples/SharedMemory/grpc/proto/pybullet.pb.h", }
+		end
+
+	end
 
 -- _OPTIONS["midi"] = "1";
 
@@ -169,6 +337,14 @@ end
 		trigger = "audio",
 		description = "Enable audio"
 	}
+	newoption
+	{
+		trigger = "enable_multithreading",
+		description = "enable CPU multithreading for bullet2 libs"
+	}
+	if _OPTIONS["enable_multithreading"] then
+		defines {"BT_THREADSAFE=1"}
+	end
 	if _OPTIONS["double"] then
 		defines {"BT_USE_DOUBLE_PRECISION"}
 	end
@@ -238,6 +414,8 @@ end
 	targetdir( _OPTIONS["targetdir"] or "../bin" )
 	location("./" .. act .. postfix)
 
+	
+	
 	if not _OPTIONS["python_include_dir"] then
 			_OPTIONS["python_include_dir"] = default_python_include_dir
 	end
@@ -245,21 +423,116 @@ end
 	if not _OPTIONS["python_lib_dir"] then
 			_OPTIONS["python_lib_dir"] = default_python_lib_dir
 	end
+
+if os.is("Linux") then
+                default_glfw_include_dir = "usr/local/include/GLFW"
+                default_glfw_lib_dir = "/usr/local/lib/"
+		default_glfw_lib_name = "glfw3"
+end
+
+if os.is("macosx") then
+		default_glfw_include_dir = "/usr/local/Cellar/glfw/3.2.1/include"
+		default_glfw_lib_dir = "/usr/local/Cellar/glfw/3.2.1/lib"
+		default_glfw_lib_name = "glfw"
+end
+
+if os.is("Windows") then
+                default_glfw_include_dir = "c:/glfw/include"
+                default_glfw_lib_dir = "c:/glfw/lib"
+		default_glfw_lib_name = "glfw3"
+end
+
 	
 
-	projectRootDir = os.getcwd() .. "/../"
-	print("Project root directory: " .. projectRootDir);
+	
+	if not _OPTIONS["glfw_lib_dir"] then
+		_OPTIONS["glfw_lib_dir"] = default_glfw_lib_dir
+	end
+	if not _OPTIONS["glfw_include_dir"] then
+		_OPTIONS["glfw_include_dir"] = default_glfw_include_dir
+	end
+	if not _OPTIONS["glfw_lib_name"] then
+		_OPTIONS["glfw_lib_name"] = default_glfw_lib_name
+	end	
+
+	
+
+	newoption
+    {
+			trigger     = "glfw_include_dir",
+			value       = default_glfw_include_dir,
+			description = "GLFW 3.x include directory"
+    }
+   
+	 newoption
+    {
+                        trigger     = "glfw_lib_name",
+                        value       = default_glfw_lib_name,
+                        description = "GLFW 3.x library name (glfw, glfw3)"
+    }
+ 
+    newoption
+    {
+			trigger     = "glfw_lib_dir",
+			value       = default_glfw_lib_dir,
+			description = "(optional) GLFW 3.x library directory "
+    }
+    
+    newoption
+    {
+			trigger     = "enable_glfw",
+			value       = false,
+			description = "(optional) use GLFW 3.x library"
+    }
+    
+	if _OPTIONS["enable_glfw"] then
+		defines {"B3_USE_GLFW"}
+		
+		function initOpenGL()
+		includedirs {
+					projectRootDir .. "examples/ThirdPartyLibs/glad"
+			}
+		
+			includedirs {
+				_OPTIONS["glfw_include_dir"],
+			}
+			
+			libdirs {
+				_OPTIONS["glfw_lib_dir"]
+			}
+			links { _OPTIONS["glfw_lib_name"]}
+			files { projectRootDir .. "examples/ThirdPartyLibs/glad/glad.c" }
+		end
+		function findOpenGL3()
+			return true
+		end
+		function initGlew()
+		end
+		function initX11()
+		links {"X11", "dl","pthread"}
+
+		end
+		
+	else
+		dofile ("findOpenGLGlewGlut.lua")
+		if (not findOpenGL3()) then
+			defines {"NO_OPENGL3"}
+		end
+	end
+
+	
 
 	dofile ("findOpenCL.lua")
 	dofile ("findDirectX11.lua")
-	dofile ("findOpenGLGlewGlut.lua")
-
-	if (not findOpenGL3()) then
-		defines {"NO_OPENGL3"}
-	end
-
+	
+	
+	
 	language "C++"
 
+
+	
+	
+	
 
 	if _OPTIONS["audio"] then
 		include "../examples/TinyAudio"
