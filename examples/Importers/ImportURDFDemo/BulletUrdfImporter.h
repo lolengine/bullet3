@@ -19,11 +19,11 @@ class BulletURDFImporter : public URDFImporterInterface
 	struct BulletURDFInternalData* m_data;
 
 public:
-	BulletURDFImporter(struct GUIHelperInterface* helper, UrdfRenderingInterface* customConverter, double globalScaling = 1, int flags = 0);
+	BulletURDFImporter(struct GUIHelperInterface* helper, UrdfRenderingInterface* customConverter, struct CommonFileIOInterface* fileIO=0,double globalScaling=1, int flags=0);
 
 	virtual ~BulletURDFImporter();
 
-	virtual bool loadURDF(const char* fileName, bool forceFixedBase = false, int flags = 0);
+	virtual bool loadURDF(const char* fileName, bool forceFixedBase = false);
 
 	//warning: some quick test to load SDF: we 'activate' a model, so we can re-use URDF code path
 	virtual bool loadSDF(const char* fileName, bool forceFixedBase = false);
@@ -88,7 +88,7 @@ public:
 	virtual int getAllocatedTexture(int index) const;
 
 	virtual void setEnableTinyRenderer(bool enable);
-	void convertURDFToVisualShapeInternal(const struct UrdfVisual* visual, const char* urdfPathPrefix, const class btTransform& visualTransform, btAlignedObjectArray<struct GLInstanceVertex>& verticesOut, btAlignedObjectArray<int>& indicesOut, btAlignedObjectArray<struct BulletURDFTexture>& texturesOut) const;
+	void convertURDFToVisualShapeInternal(const struct UrdfVisual* visual, const char* urdfPathPrefix, const class btTransform& visualTransform, btAlignedObjectArray<struct GLInstanceVertex>& verticesOut, btAlignedObjectArray<int>& indicesOut, btAlignedObjectArray<struct BulletURDFTexture>& texturesOut, struct b3ImportMeshData& meshData) const;
 };
 
 #endif  //BULLET_URDF_IMPORTER_H

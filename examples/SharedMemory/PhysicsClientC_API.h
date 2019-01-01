@@ -309,6 +309,8 @@ extern "C"
 	B3_SHARED_API b3SharedMemoryCommandHandle b3CreateChangeTextureCommandInit(b3PhysicsClientHandle physClient, int textureUniqueId, int width, int height, const char* rgbPixels);
 
 	B3_SHARED_API b3SharedMemoryCommandHandle b3InitUpdateVisualShape(b3PhysicsClientHandle physClient, int bodyUniqueId, int jointIndex, int shapeIndex, int textureUniqueId);
+	B3_SHARED_API b3SharedMemoryCommandHandle b3InitUpdateVisualShape2(b3PhysicsClientHandle physClient, int bodyUniqueId, int jointIndex, int shapeIndex);
+	B3_SHARED_API void b3UpdateVisualShapeTexture(b3SharedMemoryCommandHandle commandHandle, int textureUniqueId);
 	B3_SHARED_API void b3UpdateVisualShapeRGBAColor(b3SharedMemoryCommandHandle commandHandle, const double rgbaColor[/*4*/]);
 	B3_SHARED_API void b3UpdateVisualShapeSpecularColor(b3SharedMemoryCommandHandle commandHandle, const double specularColor[/*3*/]);
 
@@ -382,6 +384,9 @@ extern "C"
 	///compute the forces to achieve an acceleration, given a state q and qdot using inverse dynamics
 	B3_SHARED_API b3SharedMemoryCommandHandle b3CalculateInverseDynamicsCommandInit(b3PhysicsClientHandle physClient, int bodyUniqueId,
 																					const double* jointPositionsQ, const double* jointVelocitiesQdot, const double* jointAccelerations);
+	B3_SHARED_API b3SharedMemoryCommandHandle b3CalculateInverseDynamicsCommandInit2(b3PhysicsClientHandle physClient, int bodyUniqueId,
+		const double* jointPositionsQ, int dofCountQ, const double* jointVelocitiesQdot, const double* jointAccelerations, int dofCountQdot);
+
 	B3_SHARED_API int b3GetStatusInverseDynamicsJointForces(b3SharedMemoryStatusHandle statusHandle,
 															int* bodyUniqueId,
 															int* dofCount,
@@ -438,12 +443,15 @@ extern "C"
 
 	///Only use when controlMode is CONTROL_MODE_POSITION_VELOCITY_PD
 	B3_SHARED_API int b3JointControlSetDesiredPosition(b3SharedMemoryCommandHandle commandHandle, int qIndex, double value);
+	B3_SHARED_API int b3JointControlSetDesiredPositionMultiDof(b3SharedMemoryCommandHandle commandHandle, int qIndex, const double* position, int dofCount);
+
 	B3_SHARED_API int b3JointControlSetKp(b3SharedMemoryCommandHandle commandHandle, int dofIndex, double value);
 	B3_SHARED_API int b3JointControlSetKd(b3SharedMemoryCommandHandle commandHandle, int dofIndex, double value);
 	B3_SHARED_API int b3JointControlSetMaximumVelocity(b3SharedMemoryCommandHandle commandHandle, int dofIndex, double maximumVelocity);
 
 	///Only use when controlMode is CONTROL_MODE_VELOCITY
 	B3_SHARED_API int b3JointControlSetDesiredVelocity(b3SharedMemoryCommandHandle commandHandle, int dofIndex, double value); /* find a better name for dof/q/u indices, point to b3JointInfo */
+	B3_SHARED_API int b3JointControlSetDesiredVelocityMultiDof(b3SharedMemoryCommandHandle commandHandle, int dofIndex, const double* velocity, int dofCount);
 	B3_SHARED_API int b3JointControlSetMaximumForce(b3SharedMemoryCommandHandle commandHandle, int dofIndex, double value);
 	///Only use if when controlMode is CONTROL_MODE_TORQUE,
 	B3_SHARED_API int b3JointControlSetDesiredForceTorque(b3SharedMemoryCommandHandle commandHandle, int dofIndex, double value);
@@ -458,6 +466,8 @@ extern "C"
 	B3_SHARED_API int b3CreateCollisionShapeAddCylinder(b3SharedMemoryCommandHandle commandHandle, double radius, double height);
 	B3_SHARED_API int b3CreateCollisionShapeAddPlane(b3SharedMemoryCommandHandle commandHandle, const double planeNormal[/*3*/], double planeConstant);
 	B3_SHARED_API int b3CreateCollisionShapeAddMesh(b3SharedMemoryCommandHandle commandHandle, const char* fileName, const double meshScale[/*3*/]);
+	B3_SHARED_API int b3CreateCollisionShapeAddConvexMesh(b3SharedMemoryCommandHandle commandHandle, const double meshScale[/*3*/], const double* vertices, int numVertices);
+	B3_SHARED_API int b3CreateCollisionShapeAddConcaveMesh(b3SharedMemoryCommandHandle commandHandle, const double meshScale[/*3*/], const double* vertices, int numVertices, const int* indices, int numIndices);
 	B3_SHARED_API void b3CreateCollisionSetFlag(b3SharedMemoryCommandHandle commandHandle, int shapeIndex, int flags);
 	B3_SHARED_API void b3CreateCollisionShapeSetChildTransform(b3SharedMemoryCommandHandle commandHandle, int shapeIndex, const double childPosition[/*3*/], const double childOrientation[/*4*/]);
 	B3_SHARED_API int b3GetStatusCollisionShapeUniqueId(b3SharedMemoryStatusHandle statusHandle);
@@ -520,13 +530,15 @@ extern "C"
 
 	B3_SHARED_API int b3CreatePoseCommandSetJointPositions(b3SharedMemoryCommandHandle commandHandle, int numJointPositions, const double* jointPositions);
 	B3_SHARED_API int b3CreatePoseCommandSetJointPosition(b3PhysicsClientHandle physClient, b3SharedMemoryCommandHandle commandHandle, int jointIndex, double jointPosition);
+	B3_SHARED_API int b3CreatePoseCommandSetJointPositionMultiDof(b3PhysicsClientHandle physClient, b3SharedMemoryCommandHandle commandHandle, int jointIndex, const double* jointPosition, int posSize);
 
 	B3_SHARED_API int b3CreatePoseCommandSetQ(b3SharedMemoryCommandHandle commandHandle, int numJointPositions, const double* q, const int* hasQ);
 	B3_SHARED_API int b3CreatePoseCommandSetQdots(b3SharedMemoryCommandHandle commandHandle, int numJointVelocities, const double* qDots, const int* hasQdots);
 
 	B3_SHARED_API int b3CreatePoseCommandSetJointVelocities(b3PhysicsClientHandle physClient, b3SharedMemoryCommandHandle commandHandle, int numJointVelocities, const double* jointVelocities);
 	B3_SHARED_API int b3CreatePoseCommandSetJointVelocity(b3PhysicsClientHandle physClient, b3SharedMemoryCommandHandle commandHandle, int jointIndex, double jointVelocity);
-
+	B3_SHARED_API int b3CreatePoseCommandSetJointVelocityMultiDof(b3PhysicsClientHandle physClient, b3SharedMemoryCommandHandle commandHandle, int jointIndex, const double* jointVelocity, int velSize);
+	
 	///We are currently not reading the sensor information from the URDF file, and programmatically assign sensors.
 	///This is rather inconsistent, to mix programmatical creation with loading from file.
 	B3_SHARED_API b3SharedMemoryCommandHandle b3CreateSensorCommandInit(b3PhysicsClientHandle physClient, int bodyUniqueId);
@@ -542,6 +554,7 @@ extern "C"
 	B3_SHARED_API int b3RequestActualStateCommandComputeForwardKinematics(b3SharedMemoryCommandHandle commandHandle, int computeForwardKinematics);
 
 	B3_SHARED_API int b3GetJointState(b3PhysicsClientHandle physClient, b3SharedMemoryStatusHandle statusHandle, int jointIndex, struct b3JointSensorState* state);
+	B3_SHARED_API int b3GetJointStateMultiDof(b3PhysicsClientHandle physClient, b3SharedMemoryStatusHandle statusHandle, int jointIndex, struct b3JointSensorState2* state);
 	B3_SHARED_API int b3GetLinkState(b3PhysicsClientHandle physClient, b3SharedMemoryStatusHandle statusHandle, int linkIndex, struct b3LinkState* state);
 
 	B3_SHARED_API b3SharedMemoryCommandHandle b3PickBody(b3PhysicsClientHandle physClient, double rayFromWorldX,
@@ -561,9 +574,10 @@ extern "C"
 	// Sets the number of threads to use to compute the ray intersections for the batch. Specify 0 to let Bullet decide, 1 (default) for single core execution, 2 or more to select the number of threads to use.
 	B3_SHARED_API void b3RaycastBatchSetNumThreads(b3SharedMemoryCommandHandle commandHandle, int numThreads);
 	//max num rays for b3RaycastBatchAddRay is MAX_RAY_INTERSECTION_BATCH_SIZE
-	B3_SHARED_API void b3RaycastBatchAddRay(b3SharedMemoryCommandHandle commandHandle, const double rayFromWorld[3], const double rayToWorld[3]);
+	B3_SHARED_API void b3RaycastBatchAddRay(b3SharedMemoryCommandHandle commandHandle, const double rayFromWorld[/*3*/], const double rayToWorld[/*3*/]);
 	//max num rays for b3RaycastBatchAddRays is MAX_RAY_INTERSECTION_BATCH_SIZE_STREAMING
 	B3_SHARED_API void b3RaycastBatchAddRays(b3PhysicsClientHandle physClient, b3SharedMemoryCommandHandle commandHandle, const double* rayFromWorld, const double* rayToWorld, int numRays);
+	B3_SHARED_API void b3RaycastBatchSetParentObject(b3SharedMemoryCommandHandle commandHandle, int parentObjectUniqueId, int parentLinkIndex);
 
 	B3_SHARED_API void b3GetRaycastInformation(b3PhysicsClientHandle physClient, struct b3RaycastInformation* raycastInfo);
 
@@ -623,6 +637,14 @@ extern "C"
 
 	B3_SHARED_API void b3MultiplyTransforms(const double posA[/*3*/], const double ornA[/*4*/], const double posB[/*3*/], const double ornB[/*4*/], double outPos[/*3*/], double outOrn[/*4*/]);
 	B3_SHARED_API void b3InvertTransform(const double pos[/*3*/], const double orn[/*4*/], double outPos[/*3*/], double outOrn[/*4*/]);
+	B3_SHARED_API void b3QuaternionSlerp(const double startQuat[/*4*/], const double endQuat[/*4*/], double interpolationFraction, double outOrn[/*4*/]);
+	B3_SHARED_API void b3GetQuaternionFromAxisAngle(const double axis[/*3*/], double angle, double outQuat[/*4*/]);
+	B3_SHARED_API void b3GetAxisAngleFromQuaternion(const double quat[/*4*/], double axis[/*3*/], double* angle);
+	B3_SHARED_API void b3GetQuaternionDifference(const double startQuat[/*4*/], const double endQuat[/*4*/], double outOrn[/*4*/]);
+	B3_SHARED_API void b3CalculateVelocityQuaternion(const double startQuat[/*4*/], const double endQuat[/*4*/], double deltaTime, double angVelOut[/*3*/]);
+	B3_SHARED_API void b3RotateVector(const double quat[/*4*/], const double vec[/*3*/], double vecOut[/*3*/]);
+
+	
 
 #ifdef __cplusplus
 }

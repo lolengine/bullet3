@@ -1,7 +1,6 @@
 import pybullet as p
 import time
 
-
 class UrdfInertial(object):
 	def __init__(self):
 		self.mass = 1
@@ -201,6 +200,10 @@ class UrdfEditor(object):
 		file.write("\t\t</inertial>\n")
 
 	def writeVisualShape(self,file,urdfVisual, precision=5):
+		#we don't support loading capsule types from visuals, so auto-convert from collision shape
+		if urdfVisual.geom_type == p.GEOM_CAPSULE:
+			return
+                
 		file.write("\t\t<visual>\n")
 		str = '\t\t\t<origin rpy="{:.{prec}f} {:.{prec}f} {:.{prec}f}" xyz="{:.{prec}f} {:.{prec}f} {:.{prec}f}"/>\n'.format(\
 			urdfVisual.origin_rpy[0],urdfVisual.origin_rpy[1],urdfVisual.origin_rpy[2],
@@ -270,14 +273,19 @@ class UrdfEditor(object):
 		file.write("\t\t</collision>\n")
 
 
-	def writeLink(self, file, urdfLink):
+	def writeLink(self, file, urdfLink,saveVisuals):
 		file.write("\t<link name=\"")
 		file.write(urdfLink.link_name)
 		file.write("\">\n")
 
 		self.writeInertial(file,urdfLink.urdf_inertial)
+		hasCapsules = False
 		for v in urdfLink.urdf_visual_shapes:
-			self.writeVisualShape(file,v)
+			if (v.geom_type == p.GEOM_CAPSULE):
+				hasCapsules = True
+		if (saveVisuals and not hasCapsules):
+				for v in urdfLink.urdf_visual_shapes:
+					self.writeVisualShape(file,v)
 		for c in urdfLink.urdf_collision_shapes:
 			self.writeCollisionShape(file,c)
 		file.write("\t</link>\n")
@@ -321,7 +329,7 @@ class UrdfEditor(object):
 		file.write(str)
 		file.write("\t</joint>\n")
 
-	def saveUrdf(self, fileName):
+	def saveUrdf(self, fileName, saveVisuals=True):
 		file = open(fileName,"w")
 		file.write("<?xml version=\"0.0\" ?>\n")
 		file.write("<robot name=\"")
@@ -329,7 +337,7 @@ class UrdfEditor(object):
 		file.write("\">\n")
 
 		for link in self.urdfLinks:
-			self.writeLink(file,link)
+			self.writeLink(file,link, saveVisuals)
 
 		for joint in self.urdfJoints:
 			self.writeJoint(file,joint)

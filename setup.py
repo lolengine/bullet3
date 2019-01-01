@@ -23,7 +23,8 @@ def parallelCCompile(self, sources, output_dir=None, macros=None, include_dirs=N
         except KeyError: return
         self._compile(obj, src, ext, cc_args, extra_postargs, pp_opts)
     # convert to list, imap is evaluated on-demand
-    list(multiprocessing.pool.ThreadPool(N).imap(_single_compile,objects))
+    pool = multiprocessing.pool.ThreadPool(N)
+    list(pool.imap(_single_compile,objects))
     return objects
 import distutils.ccompiler
 distutils.ccompiler.CCompiler.compile=parallelCCompile
@@ -43,6 +44,10 @@ CXX_FLAGS += '-DBT_ENABLE_ENET '
 CXX_FLAGS += '-DBT_ENABLE_CLSOCKET '
 CXX_FLAGS += '-DB3_DUMP_PYTHON_VERSION '
 CXX_FLAGS += '-DEGL_ADD_PYTHON_INIT '
+CXX_FLAGS += '-DB3_ENABLE_FILEIO_PLUGIN '
+CXX_FLAGS += '-DB3_USE_ZIPFILE_FILEIO '
+CXX_FLAGS += '-DBT_THREADSAFE=1 '
+
 EGL_CXX_FLAGS = ''
 
 
@@ -73,6 +78,7 @@ sources = ["examples/pybullet/pybullet.c"]\
 +["examples/TinyRenderer/TinyRenderer.cpp"]\
 +["examples/SharedMemory/plugins/pdControlPlugin/pdControlPlugin.cpp"]\
 +["examples/SharedMemory/plugins/collisionFilterPlugin/collisionFilterPlugin.cpp"]\
++["examples/SharedMemory/plugins/fileIOPlugin/fileIOPlugin.cpp"]\
 +["examples/SharedMemory/b3RobotSimulatorClientAPI_NoDirect.cpp"]\
 +["examples/SharedMemory/IKTrajectoryHelper.cpp"]\
 +["examples/SharedMemory/InProcessMemory.cpp"]\
@@ -106,6 +112,24 @@ sources = ["examples/pybullet/pybullet.c"]\
 +["examples/ThirdPartyLibs/Wavefront/tiny_obj_loader.cpp"]\
 +["examples/ThirdPartyLibs/stb_image/stb_image.cpp"]\
 +["examples/ThirdPartyLibs/stb_image/stb_image_write.cpp"]\
++["examples/ThirdPartyLibs/minizip/ioapi.c"]\
++["examples/ThirdPartyLibs/minizip/unzip.c"]\
++["examples/ThirdPartyLibs/minizip/zip.c"]\
++["examples/ThirdPartyLibs/zlib/adler32.c"]\
++["examples/ThirdPartyLibs/zlib/compress.c"]\
++["examples/ThirdPartyLibs/zlib/crc32.c"]\
++["examples/ThirdPartyLibs/zlib/deflate.c"]\
++["examples/ThirdPartyLibs/zlib/gzclose.c"]\
++["examples/ThirdPartyLibs/zlib/gzlib.c"]\
++["examples/ThirdPartyLibs/zlib/gzread.c"]\
++["examples/ThirdPartyLibs/zlib/gzwrite.c"]\
++["examples/ThirdPartyLibs/zlib/infback.c"]\
++["examples/ThirdPartyLibs/zlib/inffast.c"]\
++["examples/ThirdPartyLibs/zlib/inflate.c"]\
++["examples/ThirdPartyLibs/zlib/inftrees.c"]\
++["examples/ThirdPartyLibs/zlib/trees.c"]\
++["examples/ThirdPartyLibs/zlib/uncompr.c"]\
++["examples/ThirdPartyLibs/zlib/zutil.c"]\
 +["examples/Importers/ImportColladaDemo/LoadMeshFromCollada.cpp"]\
 +["examples/Importers/ImportObjDemo/LoadMeshFromObj.cpp"]\
 +["examples/Importers/ImportObjDemo/Wavefront2GLInstanceGraphicsShape.cpp"]\
@@ -293,6 +317,7 @@ sources = ["examples/pybullet/pybullet.c"]\
 +["src/BulletDynamics/Featherstone/btMultiBodyMLCPConstraintSolver.cpp"]\
 +["src/BulletDynamics/Featherstone/btMultiBodyJointLimitConstraint.cpp"]\
 +["src/BulletDynamics/Featherstone/btMultiBodySliderConstraint.cpp"]\
++["src/BulletDynamics/Featherstone/btMultiBodySphericalJointMotor.cpp"]\
 +["src/BulletDynamics/Vehicle/btRaycastVehicle.cpp"]\
 +["src/BulletDynamics/Vehicle/btWheelInfo.cpp"]\
 +["src/BulletDynamics/Character/btKinematicCharacterController.cpp"]\
@@ -440,15 +465,16 @@ egl_renderer_sources = \
 +["src/BulletCollision/CollisionShapes/btConvexInternalShape.cpp"]\
 +["src/Bullet3Common/b3Logging.cpp"]\
 +["src/LinearMath/btAlignedAllocator.cpp"]\
-+["src/LinearMath/btGeometryUtil.cpp"]\
 +["src/LinearMath/btConvexHull.cpp"]\
-+["src/LinearMath/btConvexHullComputer.cpp"]\
++["src/LinearMath/btConvexHullComputer.cpp"] \
++["src/LinearMath/btGeometryUtil.cpp"]\
++["src/LinearMath/btQuickprof.cpp"] \
++["src/LinearMath/btThreads.cpp"] \
 +["src/Bullet3Common/b3AlignedAllocator.cpp"] \
 +["examples/ThirdPartyLibs/glad/gl.c"]\
 +["examples/OpenGLWindow/GLInstancingRenderer.cpp"]\
 +["examples/OpenGLWindow/GLRenderToTexture.cpp"] \
-+["examples/OpenGLWindow/LoadShader.cpp"] \
-+["src/LinearMath/btQuickprof.cpp"]
++["examples/OpenGLWindow/LoadShader.cpp"]
 
 if 'BT_USE_EGL' in CXX_FLAGS:
     sources += ['examples/ThirdPartyLibs/glad/egl.c']
@@ -525,7 +551,7 @@ hh = setup_py_dir + "/" + datadir
 for root, dirs, files in os.walk(hh):
     for fn in files:
         ext = os.path.splitext(fn)[1][1:]
-        if ext and ext in 'yaml index meta data-00000-of-00001 png gif jpg urdf sdf obj mtl dae off stl STL xml '.split():
+        if ext and ext in 'yaml index meta data-00000-of-00001 png gif jpg urdf sdf obj txt mtl dae off stl STL xml '.split():
             fn = root + "/" + fn
             need_files.append(fn[1+len(hh):])
 
@@ -559,7 +585,7 @@ if 'BT_USE_EGL' in EGL_CXX_FLAGS:
 
 setup(
 	name = 'pybullet',
-	version='2.2.3',
+	version='2.4.0',
 	description='Official Python Interface for the Bullet Physics SDK specialized for Robotics Simulation and Reinforcement Learning',
 	long_description='pybullet is an easy to use Python module for physics simulation, robotics and deep reinforcement learning based on the Bullet Physics SDK. With pybullet you can load articulated bodies from URDF, SDF and other file formats. pybullet provides forward dynamics simulation, inverse dynamics computation, forward and inverse kinematics and collision detection and ray intersection queries. Aside from physics simulation, pybullet supports to rendering, with a CPU renderer and OpenGL visualization and support for virtual reality headsets.',
 	url='https://github.com/bulletphysics/bullet3',

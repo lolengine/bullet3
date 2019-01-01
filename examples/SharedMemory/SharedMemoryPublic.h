@@ -7,7 +7,10 @@
 //Please don't replace an existing magic number:
 //instead, only ADD a new one at the top, comment-out previous one
 
-#define SHARED_MEMORY_MAGIC_NUMBER 2018090300
+
+#define SHARED_MEMORY_MAGIC_NUMBER   201811260
+//#define SHARED_MEMORY_MAGIC_NUMBER   201810250
+//#define SHARED_MEMORY_MAGIC_NUMBER 201809030
 //#define SHARED_MEMORY_MAGIC_NUMBER 201809010
 //#define SHARED_MEMORY_MAGIC_NUMBER 201807040
 //#define SHARED_MEMORY_MAGIC_NUMBER 201806150
@@ -273,6 +276,8 @@ struct b3JointInfo
 	double m_childFrame[7];   // ^^^
 	double m_jointAxis[3];    // joint axis in parent local frame
 	int m_parentIndex;
+	int m_qSize;
+	int m_uSize;
 };
 
 enum UserDataValueType
@@ -354,6 +359,16 @@ struct b3JointSensorState
 	double m_jointVelocity;
 	double m_jointForceTorque[6]; /* note to roboticists: this is NOT the motor torque/force, but the spatial reaction force vector at joint */
 	double m_jointMotorTorque;
+};
+
+struct b3JointSensorState2
+{
+	double m_jointPosition[4];
+	double m_jointVelocity[3];
+	double m_jointReactionForceTorque[6]; /* note to roboticists: this is NOT the motor torque/force, but the spatial reaction force vector at joint */
+	double m_jointMotorTorque;
+	int m_qDofSize;
+	int m_uDofSize;
 };
 
 struct b3DebugLines
@@ -572,13 +587,10 @@ struct b3ContactPointData
 
 	double m_normalForce;
 
-	//todo: expose the friction forces as well
-	//    double m_linearFrictionDirection0[3];
-	//    double m_linearFrictionForce0;
-	//    double m_linearFrictionDirection1[3];
-	//    double m_linearFrictionForce1;
-	//    double m_angularFrictionDirection[3];
-	//    double m_angularFrictionForce;
+	double m_linearFrictionForce1;
+	double m_linearFrictionForce2;
+	double m_linearFrictionDirection1[3];
+	double m_linearFrictionDirection2[3];
 };
 
 enum
@@ -746,7 +758,7 @@ enum EnumRendererAuxFlags
 {
 	ER_SEGMENTATION_MASK_OBJECT_AND_LINKINDEX = 1,
 	ER_USE_PROJECTIVE_TEXTURE = 2,
-	ER_SEGMENTATION_MASK = 4,
+	ER_NO_SEGMENTATION_MASK = 4,
 };
 
 ///flags to pick the IK solver and other options
@@ -822,6 +834,8 @@ enum eURDF_Flags
 	URDF_INITIALIZE_SAT_FEATURES = 4096,
 	URDF_USE_SELF_COLLISION_INCLUDE_PARENT = 8192,
 	URDF_PARSE_SENSORS = 16384,
+	URDF_USE_MATERIAL_COLORS_FROM_MTL = 32768,
+	URDF_USE_MATERIAL_TRANSPARANCY_FROM_MTL = 65536,
 };
 
 enum eUrdfGeomTypes  //sync with UrdfParser UrdfGeomTypes
@@ -911,5 +925,24 @@ enum eConstraintSolverTypes
 	eConstraintSolverLCP_NNCG,
 	eConstraintSolverLCP_BLOCK_PGS,
 };
+
+enum eFileIOActions
+{
+	eAddFileIOAction = 1024,//avoid collision with eFileIOTypes
+	eRemoveFileIOAction,
+};
+
+
+enum eFileIOTypes
+{
+	ePosixFileIO = 1,
+	eZipFileIO,
+	eCNSFileIO,
+	eInMemoryFileIO,
+};
+
+//limits for vertices/indices in PyBullet::createCollisionShape
+#define B3_MAX_NUM_VERTICES 16
+#define B3_MAX_NUM_INDICES 16
 
 #endif  //SHARED_MEMORY_PUBLIC_H

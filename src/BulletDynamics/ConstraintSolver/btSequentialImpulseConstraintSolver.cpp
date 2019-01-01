@@ -918,9 +918,9 @@ void btSequentialImpulseConstraintSolver::setupContactConstraint(btSolverConstra
 	{
 		solverConstraint.m_appliedImpulse = cp.m_appliedImpulse * infoGlobal.m_warmstartingFactor;
 		if (rb0)
-			bodyA->internalApplyImpulse(solverConstraint.m_contactNormal1 * bodyA->internalGetInvMass() * rb0->getLinearFactor(), solverConstraint.m_angularComponentA, solverConstraint.m_appliedImpulse);
+			bodyA->internalApplyImpulse(solverConstraint.m_contactNormal1 * bodyA->internalGetInvMass(), solverConstraint.m_angularComponentA, solverConstraint.m_appliedImpulse);
 		if (rb1)
-			bodyB->internalApplyImpulse(-solverConstraint.m_contactNormal2 * bodyB->internalGetInvMass() * rb1->getLinearFactor(), -solverConstraint.m_angularComponentB, -(btScalar)solverConstraint.m_appliedImpulse);
+			bodyB->internalApplyImpulse(-solverConstraint.m_contactNormal2 * bodyB->internalGetInvMass() , -solverConstraint.m_angularComponentB, -(btScalar)solverConstraint.m_appliedImpulse);
 	}
 	else
 	{
@@ -990,9 +990,9 @@ void btSequentialImpulseConstraintSolver::setFrictionConstraintImpulse(btSolverC
 		{
 			frictionConstraint1.m_appliedImpulse = cp.m_appliedImpulseLateral1 * infoGlobal.m_warmstartingFactor;
 			if (rb0)
-				bodyA->internalApplyImpulse(frictionConstraint1.m_contactNormal1 * rb0->getInvMass() * rb0->getLinearFactor(), frictionConstraint1.m_angularComponentA, frictionConstraint1.m_appliedImpulse);
+				bodyA->internalApplyImpulse(frictionConstraint1.m_contactNormal1 * rb0->getInvMass() , frictionConstraint1.m_angularComponentA, frictionConstraint1.m_appliedImpulse);
 			if (rb1)
-				bodyB->internalApplyImpulse(-frictionConstraint1.m_contactNormal2 * rb1->getInvMass() * rb1->getLinearFactor(), -frictionConstraint1.m_angularComponentB, -(btScalar)frictionConstraint1.m_appliedImpulse);
+				bodyB->internalApplyImpulse(-frictionConstraint1.m_contactNormal2 * rb1->getInvMass() , -frictionConstraint1.m_angularComponentB, -(btScalar)frictionConstraint1.m_appliedImpulse);
 		}
 		else
 		{
@@ -1110,7 +1110,7 @@ void btSequentialImpulseConstraintSolver::convertContact(btPersistentManifold* m
 			///If you choose SOLVER_DISABLE_VELOCITY_DEPENDENT_FRICTION_DIRECTION, then the friction will be independent from the relative projected velocity.
 			///
 			///The user can manually override the friction directions for certain contacts using a contact callback,
-			///and set the cp.m_lateralFrictionInitialized to true
+			///and use contactPoint.m_contactPointFlags |= BT_CONTACT_FLAG_LATERAL_FRICTION_INITIALIZED
 			///In that case, you can set the target relative motion in each friction direction (cp.m_contactMotion1 and cp.m_contactMotion2)
 			///this will give a conveyor belt effect
 			///
